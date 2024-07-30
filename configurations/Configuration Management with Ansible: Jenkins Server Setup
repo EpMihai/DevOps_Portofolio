@@ -1,1 +1,42 @@
 
+# JenkinsServer.yml
+---
+- name: Setup Jenkins Server
+  hosts: jenkins
+  become: true
+  tasks:
+    - name: Install prerequisite packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - software-properties-common
+
+    - name: Add Jenkins repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
+
+    - name: Add Jenkins repository
+      apt_repository:
+        repo: deb http://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Ensure Jenkins is started and enabled
+      systemd:
+        name: jenkins
+        state: started
+        enabled: true
